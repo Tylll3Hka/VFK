@@ -5,7 +5,6 @@ import kotlinx.serialization.json.Json
 import models.LongPollServer
 import models.Response
 import models.Update
-import sun.java2d.pipe.hw.ExtendedBufferCapabilities.VSyncType
 
 class VkApi(
     private val token: String,
