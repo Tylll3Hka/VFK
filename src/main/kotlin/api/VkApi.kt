@@ -2,40 +2,46 @@ package api
 
 import http.HttpClient
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import models.LongPollServer
 import models.Response
 import models.Update
-import sun.java2d.pipe.hw.ExtendedBufferCapabilities.VSyncType
+import models.events.MessageNew
 
 class VkApi(
     private val token: String,
     private val groupId: Int,
     private val wait: Long = 90
 ) {
-    val jsonSetting = Json {
-        ignoreUnknownKeys = true
-    }
+    val jsonSetting = Json { ignoreUnknownKeys = true }
     private val baseUrl = "https://api.vk.com/method"
+    private val eventListener = EventListener()
     private val httpClient = HttpClient(wait, jsonSetting)
-    val eventListener = EventListener()
 
-    fun call(method: String, vararg params: Pair<String, *>): String {
-        return httpClient.call("$baseUrl/$method", params = params)
+    fun call(method: String, params: ArrayList<Pair<String, *>>): String {
+        params.add(Pair("access_token", token))
+        params.add(Pair("group_id", groupId))
+        return httpClient.call("$baseUrl/$method", params)
+    }
+
+
+    fun onEvent(eventType: String, block: (JsonObject) -> Unit) {
+        eventListener.newEventListener(eventType) {
+            block(it)
+        }
     }
 
     fun startLongPolling() {
         val data = getLongPollServer()
         processPolling(data) {
-            if (updates.isNotEmpty()) {
-                updates.forEach {
-                    eventListener.searchEventListener(it.type, it.`object`)
-                }
+            if (updates.isNotEmpty()) updates.forEach {
+                eventListener.searchEventListener(it.type, it.`object`)
             }
         }
     }
 
-    private fun getLongPollServer(): LongPollServer {
-        return httpClient.get<Response<LongPollServer>>(
+    private fun getLongPollServer(): LongPollServer = httpClient
+        .get<Response<LongPollServer>>(
             url = "$baseUrl/groups.getLongPollServer",
             params = arrayOf(
                 "access_token" to token,
@@ -43,7 +49,7 @@ class VkApi(
                 "group_id" to groupId
             )
         ).response
-    }
+
 
     private inline fun processPolling(
         data: LongPollServer,

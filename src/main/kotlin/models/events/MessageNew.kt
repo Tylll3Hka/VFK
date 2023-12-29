@@ -1,5 +1,6 @@
 package models.events
 
+import api.VkApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonArray
@@ -13,8 +14,7 @@ data class MessageNew(
     val peerId: Int,
     @SerialName("from_id")
     val fromId: Int,
-    val text: String? = null
-    ,
+    val text: String? = null,
     @SerialName("random_id")
     val randomId: Int? = null,
     val ref: String? = null,

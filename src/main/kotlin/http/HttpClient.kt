@@ -34,7 +34,7 @@ class HttpClient(
         return json.decodeFromString<T>(data)
     }
 
-    fun call(url: String, vararg params: Pair<String, *>): String {
+    fun call(url: String, params: ArrayList<Pair<String, *>>): String {
         val urlBuild = StringBuilder().apply {
             append("$url?")
             params.forEachIndexed { index, pair ->
