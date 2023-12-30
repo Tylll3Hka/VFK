@@ -7,6 +7,8 @@ import models.LongPollServer
 import models.Response
 import models.Update
 import models.events.MessageNew
+import utils.Parameters
+import utils.paramsOf
 
 class VkApi(
     private val token: String,
@@ -18,9 +20,9 @@ class VkApi(
     private val eventListener = EventListener()
     private val httpClient = HttpClient(wait, jsonSetting)
 
-    fun call(method: String, params: ArrayList<Pair<String, *>>): String {
-        params.add(Pair("access_token", token))
-        params.add(Pair("group_id", groupId))
+    fun call(method: String, params: Parameters): String {
+        params.put("access_token", token)
+        params.put("group_id", groupId)
         return httpClient.call("$baseUrl/$method", params)
     }
 
@@ -43,7 +45,7 @@ class VkApi(
     private fun getLongPollServer(): LongPollServer = httpClient
         .get<Response<LongPollServer>>(
             url = "$baseUrl/groups.getLongPollServer",
-            params = arrayOf(
+            params = paramsOf(
                 "access_token" to token,
                 "v" to 5.199f,
                 "group_id" to groupId
@@ -59,7 +61,7 @@ class VkApi(
         while (true) {
             val event = httpClient.get<Update>(
                 url = data.server,
-                params = arrayOf(
+                params = paramsOf(
                     "act" to "a_check",
                     "key" to data.key,
                     "ts" to ts,
